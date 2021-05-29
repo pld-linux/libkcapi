@@ -15,6 +15,7 @@ Group:		Libraries
 #Source0Download: https://www.chronox.de/libkcapi.html
 Source0:	https://www.chronox.de/libkcapi/%{name}-%{version}.tar.xz
 # Source0-md5:	f441943c07b7876ee057fb6de9efd674
+Patch0:		%{name}-32bit.patch
 URL:		https://www.chronox.de/libkcapi.html
 BuildRequires:	autoconf >= 2.50
 BuildRequires:	automake
@@ -80,6 +81,7 @@ Statyczna biblioteka libkcapi.
 
 %prep
 %setup -q
+%patch0 -p1
 
 %build
 %{__libtoolize}

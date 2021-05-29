@@ -1,0 +1,83 @@
+From 299e5e8c38de9be99b86885c1af60dd5e1cc9888 Mon Sep 17 00:00:00 2001
+From: Ondrej Mosnacek <omosnace@redhat.com>
+Date: Mon, 17 May 2021 22:19:32 +0200
+Subject: [PATCH] docproc: fix -Wconversion warnings on 32-bit
+
+On i686, GCC 11.1.1 complains:
+```
+lib/doc/bin/docproc.c: In function 'find_all_symbols':
+lib/doc/bin/docproc.c:433:17: error: conversion to 'ssize_t' {aka 'int'} from 'unsigned int' may change the sign of the result [-Werror=sign-conversion]
+  433 |         start = all_list_len;
+      |                 ^~~~~~~~~~~~
+lib/doc/bin/docproc.c:441:48: error: comparison of integer expressions of different signedness: 'ssize_t' {aka 'int'} and 'unsigned int' [-Werror=sign-compare]
+  441 |         for (i = 0; i < (int)data_len && start != all_list_len; i++) {
+      |                                                ^~
+cc1: all warnings being treated as errors
+```
+
+Fix this by declaring all of all_list_len, i, count, and start as
+size_t and remove a few casts that are no longer necessary.
+
+Signed-off-by: Ondrej Mosnacek <omosnace@redhat.com>
+Signed-off-by: Stephan Mueller <smueller@chronox.de>
+---
+ lib/doc/bin/docproc.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/lib/doc/bin/docproc.c b/lib/doc/bin/docproc.c
+index 556d5d4..74b3cdb 100644
+--- a/lib/doc/bin/docproc.c
++++ b/lib/doc/bin/docproc.c
+@@ -77,11 +77,11 @@ FILELINE * docsection;
+ static char *srctree, *kernsrctree;
+ 
+ static char **all_list = NULL;
+-static unsigned int all_list_len = 0;
++static size_t all_list_len = 0;
+ 
+ static void consume_symbol(const char *sym)
+ {
+-	unsigned int i;
++	size_t i;
+ 
+ 	for (i = 0; i < all_list_len; i++) {
+ 		if (!all_list[i])
+@@ -361,11 +361,11 @@ static void find_all_symbols(char *filename)
+ {
+ 	char *vec[4]; /* kerneldoc -list file NULL */
+ 	pid_t pid;
+-	ssize_t ret, i, count, start;
++	ssize_t ret;
+ 	char real_filename[PATH_MAX + 1];
+ 	int pipefd[2];
+ 	char *data, *str;
+-	size_t data_len = 0;
++	size_t i, count, start, data_len = 0;
+ 
+ 	vec[0] = KERNELDOC;
+ 	vec[1] = LIST;
+@@ -424,21 +424,21 @@ static void find_all_symbols(char *filename)
+ 
+ 	count = 0;
+ 	/* poor man's strtok, but with counting */
+-	for (i = 0; i < (int)data_len; i++) {
++	for (i = 0; i < data_len; i++) {
+ 		if (data[i] == '\n') {
+ 			count++;
+ 			data[i] = '\0';
+ 		}
+ 	}
+ 	start = all_list_len;
+-	all_list_len += (unsigned int)count;
++	all_list_len += count;
+ 	all_list = realloc(all_list, sizeof(char *) * all_list_len);
+ 	if (!all_list) {
+ 		perror("realloc");
+ 		exit(1);
+ 	}
+ 	str = data;
+-	for (i = 0; i < (int)data_len && start != all_list_len; i++) {
++	for (i = 0; i < data_len && start != all_list_len; i++) {
+ 		if (data[i] == '\0') {
+ 			all_list[start] = str;
+ 			str = data + i + 1;
