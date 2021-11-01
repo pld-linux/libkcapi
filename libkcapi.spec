@@ -8,14 +8,13 @@
 Summary:	Linux Kernel Crypto API User Space Interface Library
 Summary(pl.UTF-8):	Biblioteka interfejsu przestrzeni użytownika do API kryptograficznego jądra Linuksa
 Name:		libkcapi
-Version:	1.3.0
+Version:	1.3.1
 Release:	1
 License:	BSD or GPL v2
 Group:		Libraries
 #Source0Download: https://www.chronox.de/libkcapi.html
 Source0:	https://www.chronox.de/libkcapi/%{name}-%{version}.tar.xz
-# Source0-md5:	f441943c07b7876ee057fb6de9efd674
-Patch0:		%{name}-32bit.patch
+# Source0-md5:	d65056b8eff5e570cc8d0750d29ea48c
 URL:		https://www.chronox.de/libkcapi.html
 BuildRequires:	autoconf >= 2.50
 BuildRequires:	automake
@@ -81,7 +80,6 @@ Statyczna biblioteka libkcapi.
 
 %prep
 %setup -q
-%patch0 -p1
 
 %build
 %{__libtoolize}
